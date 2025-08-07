@@ -6,16 +6,6 @@ const { getMyPrescriptions } = require('../controllers/prescriptionController');
 
 router.get('/my-prescriptions', protect, getMyPrescriptions);
 
-// GET all prescriptions for current user
-router.get('/', protect, async (req, res) => {
-  try {
-    const prescriptions = await Prescription.find({ patient: req.user.id });
-    res.json(prescriptions);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch prescriptions' });
-  }
-});
-
 // POST create new prescription
 router.post('/', protect, async (req, res) => {
   try {
@@ -76,7 +66,7 @@ router.post('/:id/take-dose', protect, async (req, res) => { // ✅ FIXED
 
     const shouldNotify = medicine.pillCount <= medicine.threshold;
     if (shouldNotify) {
-      console.log(`Low stock alert for ${medicine.name}`);
+      await notificationService.sendLowStockAlert(req.user, medicine);
     }
 
     await prescription.save();
